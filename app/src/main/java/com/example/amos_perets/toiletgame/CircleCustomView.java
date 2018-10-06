@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,76 +15,92 @@ import java.util.Random;
 
 public class CircleCustomView extends View {
 
-    private final int RADIUS                = 200;
-    private final int WIDTH                 = getResources().getDisplayMetrics().widthPixels;
-    private final int HEIGHT                =  getResources().getDisplayMetrics().heightPixels;
+    private final int SIZE_CIRCLES        = 9;
+    private static int INDEX_ARRAY_COLOR  = 0;
 
     private Paint drawPaint;
     private Random random;
     private List<CircleData> circleDataList;
-    private CircleData correctCircleData;
+    private int[] colorArray = new int[SIZE_CIRCLES];
+
+    private CircleCustomListener circleCustomListenerCallBack;
 
     public CircleCustomView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initPaint();
         random = new Random();
         circleDataList = new ArrayList<>();
-        circleDataList.add(new CircleData(Color.BLACK, true));
-        circleDataList.add(new CircleData(Color.RED, false));
-        circleDataList.add(new CircleData(Color.YELLOW, false));
-  //      circleDataList.add(new CircleData(Color.GREEN, false));
-//        circleDataList.add(new CircleData(Color.BLUE, false));
-        correctCircleData = getCorrectCircleData();
+        colorArray[0] = Color.BLACK;
+        colorArray[1] = Color.BLUE;
+        colorArray[2] = Color.YELLOW;
+        colorArray[3] = Color.GRAY;
+        colorArray[4] = Color.GREEN;
+        colorArray[5] = Color.argb(255, 255, 123, 0);
+        colorArray[6] = Color.RED;
+        colorArray[7] = Color.CYAN;
+        colorArray[8] = Color.WHITE;
     }
 
-    private CircleData getCorrectCircleData(){
-        for(CircleData circleData : circleDataList){
-            if(circleData.isCorrectCircle()){
-                return circleData;
+    private void generateCorrectCircleData(){
+        for(CircleData circleData : circleDataList) {
+            circleData.setCorrectCircle(false);
+        }
+        if(circleDataList.size() > 1){
+            int indexCorrectCircle = random.nextInt( circleDataList.size()-1 );
+            circleDataList.get(indexCorrectCircle).setCorrectCircle(true);
+            String strCorrectColorCircle = getCorrectCircle(circleDataList.get(indexCorrectCircle).getColor());
+            if(circleCustomListenerCallBack != null){
+                circleCustomListenerCallBack.onChangecorrectCircle(strCorrectColorCircle);
             }
         }
-        return new CircleData();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         clear(canvas);
-        for(CircleData circleData : circleDataList){
-            circle(canvas, circleData);
+        checkIntersectionsCircles();
+        drawCircles(canvas);
+    }
+
+    public void addOrChangeCircle(boolean isFullyList){
+        CircleData circleData = generateCircle();
+
+        if(isFullyList){
+            changeCircleInList(circleData);
+        } else {
+            addCircle(circleData);
+        }
+
+        generateCorrectCircleData();
+    }
+
+    private void changeCircleInList(CircleData circleData){
+        for (CircleData currCircleData : circleDataList){
+            if(circleData.getColor() == currCircleData.getColor()){
+                circleDataList.set(circleDataList.indexOf(currCircleData), circleData);
+                break;
+            }
         }
     }
 
-    private void circle(Canvas canvas, CircleData circleData){
-        circleData.generateRandomXYAndRadius();
-//        if(!circleData.isCorrectCircle()){
-            for (int i = 0; i < circleDataList.size(); i++){
-                CircleData prevCircleData = circleDataList.get(i);
-                    if( (circleData.getColor() != prevCircleData.getColor()) && (intersectionsCircle(circleData, prevCircleData)) ){
-                        circleData.generateRandomXYAndRadius();
-                        i = 0;
-                    }
-            }
-  //      }
-        canvas.drawCircle(circleData.getX(), circleData.getY(), circleData.getRadius() , setupPaint(circleData.getColor()));
+    private void addCircle(CircleData circleData){
+        circleDataList.add(circleData);
     }
 
-    /**
-     * Check overlap between two circles
-     * @param circleData - the curr/new circleData
-     * @param prevCircleData the prev circleData
-     * @return
-     */
-    private boolean intersectionsCircle(CircleData circleData,  CircleData prevCircleData){
-
-        return  (Math.hypot(circleData.getX()-prevCircleData.getX(), circleData.getY()-prevCircleData.getY()) <= (circleData.getRadius() + prevCircleData.getRadius()));
-
-
+    public boolean isFullyList(){
+         return circleDataList.size() == SIZE_CIRCLES;
     }
 
 
-    public void drawCircle(){
-        invalidate();
+    public void invalidate(){
+        super.invalidate();
+    }
+
+    public void drawCircles(Canvas canvas){
+        for(CircleData circleData : circleDataList){
+            canvas.drawCircle(circleData.getX(), circleData.getY(), circleData.getRadius() , setupPaint(circleData.getColor()));
+        }
     }
 
     private void clear(Canvas canvas) {
@@ -93,11 +110,8 @@ public class CircleCustomView extends View {
     }
 
     private Paint setupPaint(int color) {
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(7);
-        paint.setColor(color);
-        return paint;
+        drawPaint.setColor(color);
+        return drawPaint;
     }
 
     private void initPaint() {
@@ -110,85 +124,130 @@ public class CircleCustomView extends View {
         drawPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
-    private class CircleData {
-
-        private int x;
-        private int y;
-        private int radius;
-        private int color;
-        private boolean correctCircle;
-
-        public CircleData(int color, boolean correctCircle) {
-            this.color = color;
-            this.correctCircle = correctCircle;
+    public CircleData generateCircle(){
+        CircleData circleData = new CircleData(getMeasuredWidth() - 50, getMeasuredHeight() - 50);
+        if(INDEX_ARRAY_COLOR  == circleDataList.size() ){
+            initIndexArrayColor();
         }
+        circleData.setColor(colorArray[INDEX_ARRAY_COLOR++]);
 
-        public CircleData() {
+        return circleData;
+    }
 
-        }
+    private void initIndexArrayColor(){
+        INDEX_ARRAY_COLOR = 0;
+    }
 
-        public boolean isCorrectCircle() {
-            return correctCircle;
-        }
-
-        public void setCorrectCircle(boolean correctCircle) {
-            this.correctCircle = correctCircle;
-        }
-
-        public int getColor() {
-            return color;
-        }
-
-        public void setColor(int color) {
-            this.color = color;
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        public void setX(int x) {
-            this.x = x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        public void setY(int y) {
-            this.y = y;
-        }
-
-        public int getRadius() {
-            return radius;
-        }
-
-        private void setRandomRadius() {
-//            this.radius = random.nextInt(RADIUS) + 10;
-            this.radius = RADIUS;
-        }
-
-        private void setRandomY() {
-            this.y = random.nextInt(HEIGHT - (radius*2) ) + radius ;
-//            this.y = (HEIGHT - (radius*2));
-
-        }
-
-        private void setRandomX() {
-            this.x = random.nextInt(WIDTH - (radius*2) ) + radius;
-//            this.x = (WIDTH - (radius*2));
-        }
-
-        public void generateRandomXYAndRadius(){
-            setRandomRadius();
-            setRandomX();
-            setRandomY();
-        }
-
-        public void setRadius(int radius) {
-            this.radius = radius;
+    public void initAll(){
+        circleDataList.removeAll(circleDataList);
+        if(circleCustomListenerCallBack != null){
+            circleCustomListenerCallBack.onChangecorrectCircle("");
         }
     }
 
+    public void clearAll(){
+        initAll();
+        invalidate();
+    }
+
+    public boolean isCircleTouch(int xTouch, int yTouch){
+        for(CircleData circleData : circleDataList){
+            if(circleData.isCorrectCircle()){
+                int radius = circleData.getRadius();
+                int centerX = circleData.getX() ;
+                int centerY = circleData.getY() ;
+                int distanceX = (xTouch - centerX);
+                int distanceY = (yTouch - centerY);
+                return isInsideCircle(distanceX, distanceY, radius);
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isInsideCircle(int distanceX, int distanceY, int radius){
+        return (distanceX * distanceX) + (distanceY * distanceY) <= radius * radius;
+    }
+
+
+    public String getCorrectCircle(int colorOfCorrectCircle){
+
+        String strColor= "";
+
+        switch (colorOfCorrectCircle){
+            case Color.BLACK:
+                strColor = "BLACK";
+                break;
+
+            case Color.CYAN:
+                strColor = "CYAN";
+                break;
+
+            case Color.RED:
+                strColor = "RED";
+                break;
+
+            case Color.DKGRAY:
+                strColor = "ORANGE";
+                break;
+
+            case Color.GREEN:
+                strColor = "GREEN";
+                break;
+
+            case Color.GRAY:
+                strColor = "GRAY";
+                break;
+
+            case Color.YELLOW:
+                strColor = "YELLOW";
+                break;
+
+            case Color.BLUE:
+                strColor = "BLUE";
+                break;
+
+            case Color.WHITE:
+                strColor = "WHITE";
+                break;
+
+        }
+        return strColor;
+    }
+
+    private void checkIntersectionsCircles(){
+        for(CircleData circleData : circleDataList){
+            for (int i = 0; i < circleDataList.size(); i++){
+                CircleData currCircleData = circleDataList.get(i);
+                if( circleData.getColor() != currCircleData.getColor()){
+                    if( isIntersectionsCircle(circleData, currCircleData)){
+                        circleData.generateRandomXYAndRadius();
+                        i = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Check overlap between two circles
+     * @param circleData - the curr/new circleData
+     * @param prevCircleData the prev circleData
+     * @return
+     */
+    private boolean isIntersectionsCircle(CircleData circleData,  CircleData prevCircleData){
+
+        return  (Math.hypot(circleData.getX()-prevCircleData.getX(), circleData.getY()-prevCircleData.getY()) <= (circleData.getRadius() + prevCircleData.getRadius()));
+
+    }
+
+
+    public void setCircleCustomListener(CircleCustomListener circleCustomListenerCallBack){
+        this.circleCustomListenerCallBack = circleCustomListenerCallBack;
+    }
+
+    public interface CircleCustomListener{
+        public void onChangecorrectCircle(String strCorrectCircle);
+    }
 }
 

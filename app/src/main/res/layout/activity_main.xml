@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:id="@+id/MainActivity"
+    android:orientation="vertical"
+    android:background="#333">
 
+
+    <TextView
+        android:id="@+id/TextCorrectCircle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColorHighlight="#333"
+        android:text="color"
+        android:layout_alignParentLeft="true"/>
+
+    <TextView
+        android:id="@+id/TextTouchCorrectCircle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColorHighlight="#333"
+        android:text="0"
+        android:layout_alignParentRight="true"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -18,6 +40,8 @@
     <com.example.amos_perets.toiletgame.CircleCustomView
         android:id="@+id/circle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:padding="10dp"/>
 
-</android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>
