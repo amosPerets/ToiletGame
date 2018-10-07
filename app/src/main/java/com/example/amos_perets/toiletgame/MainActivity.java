@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity implements CircleCustomView.
 
     private TextView tvCorrectCircle, tvTouchCorrectCircle;
 
+    private CircleData currCircleData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,19 +68,37 @@ public class MainActivity extends AppCompatActivity implements CircleCustomView.
         circleCustomView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
 
-                    if(!circleCustomView.isCircleTouch((int)event.getX(), (int)event.getY())){
-                        tvTouchCorrectCircle.setText("NOT GOODDDDDD");
-                    }else {
-                        tvTouchCorrectCircle.setText("GOODDDDDD");
+                    currCircleData = circleCustomView.isTapCircle((int)event.getX(), (int)event.getY());
+
+                }
+
+                if(event.getAction() == MotionEvent.ACTION_MOVE){
+
+                    Log.d("DRAG", "ACTION_MOVE");
+                    if( currCircleData != null){
+                        currCircleData.setX((int)event.getX());
+                        currCircleData.setY((int)event.getY());
+                        circleCustomView.invalidate();
                     }
 
                 }
 
-                if(event.getAction() == MotionEvent.ACTION_UP){
-                    tvTouchCorrectCircle.setText("");
-                }
+//                if(event.getAction() == MotionEvent.ACTION_DOWN){
+//
+//                    if(!circleCustomView.isCircleTouch((int)event.getX(), (int)event.getY())){
+//                        tvTouchCorrectCircle.setText("NOT GOODDDDDD");
+//                    }else {
+//                        tvTouchCorrectCircle.setText("GOODDDDDD");
+//                    }
+//
+//                }
+//
+//                if(event.getAction() == MotionEvent.ACTION_UP){
+//                    tvTouchCorrectCircle.setText("");
+//                }
 
                 return true;
             }

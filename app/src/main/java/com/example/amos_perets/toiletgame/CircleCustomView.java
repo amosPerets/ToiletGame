@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -17,6 +18,7 @@ public class CircleCustomView extends View {
 
     private final int SIZE_CIRCLES        = 9;
     private static int INDEX_ARRAY_COLOR  = 0;
+    public static final int DELTA_BORDER      = 10;
 
     private Paint drawPaint;
     private Random random;
@@ -125,7 +127,7 @@ public class CircleCustomView extends View {
     }
 
     public CircleData generateCircle(){
-        CircleData circleData = new CircleData(getMeasuredWidth() - 50, getMeasuredHeight() - 50);
+        CircleData circleData = new CircleData(getMeasuredWidth() - DELTA_BORDER , getMeasuredHeight() - DELTA_BORDER);
         if(INDEX_ARRAY_COLOR  == circleDataList.size() ){
             initIndexArrayColor();
         }
@@ -150,14 +152,41 @@ public class CircleCustomView extends View {
         invalidate();
     }
 
+    public CircleData isTapCircle(int xTouch, int yTouch){
+        int radius, centerX, centerY, distanceX, distanceY;
+        CircleData currCircleData = null;
+
+        for(CircleData circleData : circleDataList){
+                 radius = circleData.getRadius();
+                 centerX = circleData.getX() ;
+                 centerY = circleData.getY() ;
+                 distanceX = (xTouch - centerX);
+                 distanceY = (yTouch - centerY);
+                if(isInsideCircle(distanceX, distanceY, radius)){
+                    Log.d("DRAG", "CIRCLE");
+                    currCircleData = circleData;
+                    break;
+                } else {
+                    Log.d("DRAG", "NOT CIRCLE");
+                }
+
+        }
+
+        return currCircleData;
+    }
+
+
+
     public boolean isCircleTouch(int xTouch, int yTouch){
+        int radius, centerX, centerY, distanceX, distanceY;
+
         for(CircleData circleData : circleDataList){
             if(circleData.isCorrectCircle()){
-                int radius = circleData.getRadius();
-                int centerX = circleData.getX() ;
-                int centerY = circleData.getY() ;
-                int distanceX = (xTouch - centerX);
-                int distanceY = (yTouch - centerY);
+                 radius = circleData.getRadius();
+                 centerX = circleData.getX() ;
+                 centerY = circleData.getY() ;
+                 distanceX = (xTouch - centerX);
+                 distanceY = (yTouch - centerY);
                 return isInsideCircle(distanceX, distanceY, radius);
             }
         }

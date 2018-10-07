@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import java.util.Random;
 
+import static com.example.amos_perets.toiletgame.CircleCustomView.DELTA_BORDER;
+
 public class CircleData extends AppCompatActivity {
 
     private final int RADIUS      = 200;
@@ -45,7 +47,13 @@ public class CircleData extends AppCompatActivity {
     }
 
     public void setX(int x) {
-        this.x = x;
+        if(x - radius <= 0){
+            this.x = radius + DELTA_BORDER;
+        } else if(x + radius  >= WIDTH){
+            this.x = WIDTH - radius;
+        } else {
+            this.x = x;
+        }
     }
 
     public int getY() {
@@ -53,34 +61,42 @@ public class CircleData extends AppCompatActivity {
     }
 
     public void setY(int y) {
-        this.y = y;
+        if(y - radius <= 0){
+            this.y = radius + DELTA_BORDER;
+        } else if(y + radius >= HEIGHT){
+            this.y = HEIGHT - radius;
+        } else {
+            this.y = y ;
+        }
     }
 
     public int getRadius() {
         return radius;
     }
 
-    private void setRandomRadius() {
-            this.radius = random.nextInt(RADIUS) + 30;
-    }
-
-    private void setRandomY() {
-        this.y = random.nextInt(HEIGHT - (radius*2) ) + radius ;
-
-    }
-
-    private void setRandomX() {
-        this.x = random.nextInt(WIDTH - (radius*2 ) ) + radius;
-    }
-
-    public void generateRandomXYAndRadius(){
-        setRandomRadius();
-        setRandomX();
-        setRandomY();
-    }
-
     public void setRadius(int radius) {
         this.radius = radius;
     }
+
+    private void generateRandomRadius() {
+        setRadius(random.nextInt(RADIUS) + 30);
+    }
+
+    private void generateRandomY() {
+//        setY(random.nextInt(HEIGHT - (radius*2) ) + radius);
+        setY(random.nextInt(HEIGHT - radius) + radius);
+    }
+
+    private void generateRandomX() {
+//        setX(random.nextInt(WIDTH - (radius*2 ) ) + radius);
+        setX(random.nextInt(WIDTH - radius) + radius);
+    }
+
+    public void generateRandomXYAndRadius(){
+        generateRandomRadius();
+        generateRandomX();
+        generateRandomY();
+    }
+
 
 }
