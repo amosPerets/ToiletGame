@@ -1,10 +1,10 @@
-package com.example.amos_perets.toiletgame;
+package com.example.amos_perets.toiletgame.circle;
 
 import android.support.v7.app.AppCompatActivity;
 
 import java.util.Random;
 
-import static com.example.amos_perets.toiletgame.CircleCustomView.DELTA_BORDER;
+import static com.example.amos_perets.toiletgame.circle.CircleCustomView.DELTA_BORDER;
 
 public class CircleData extends AppCompatActivity {
 
